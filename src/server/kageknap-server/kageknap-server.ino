@@ -18,35 +18,42 @@
 
 WiFiMulti wifiMulti;
 auto led = JLed(27).Breathe(2500).DelayAfter(1500).Forever();
-auto timer = timer_create_default();
+auto timer1 = timer_create_default();
 EasyButton button(21);
+int buttonPressed = 0;
 
-
-bool function_to_call(void *argument) {    
-    led = JLed(27).Breathe(2500).DelayAfter(1500).Forever();        
-    return true; 
+bool changeLed(void *argument)
+{
+  Serial.println("---- changeLed start");
+  led = JLed(27).Breathe(2500).DelayAfter(1500).Forever();
+  led.Reset();
+  led.Update();
+  Serial.println("---- changeLed end");
+  return true;
 }
 
-void setup() {
+void setup()
+{
 
   Serial.begin(115200);
   delay(100);
-  
+
   Serial.println("---- setup start");
 
   pinMode(27, OUTPUT);
   pinMode(21, INPUT);
-  
-  Serial.println("Wifi connect");  
+
+  Serial.println("Wifi connect");
   WiFi.mode(WIFI_STA);
   WiFi.disconnect();
   wifiMulti.addAP(const_ssid1, const_password1);
-  wifiMulti.addAP(const_ssid2, const_password2);  
-  while (wifiMulti.run() != WL_CONNECTED) { 
+  wifiMulti.addAP(const_ssid2, const_password2);
+  while (wifiMulti.run() != WL_CONNECTED)
+  {
     Serial.print('.');
-    delay(500);    
+    delay(500);
   }
-  
+
   Serial.println("WiFi connected");
   Serial.println("SSIP: ");
   Serial.println(WiFi.SSID());
@@ -54,23 +61,28 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   button.onPressed(onPressed);
-  
+
   Serial.println("---- setup end");
 }
 
-
-void onPressed() {
-  Serial.println("Button has been pressed!");
-  delay(100);
-  led =  JLed(27).Blink(300, 300).Forever();    
-  timer.in(5000, function_to_call); 
+void onPressed()
+{
+  Serial.println("---- onPressed start");  
+  buttonPressed++;
+  Serial.print("Button pressed: ");
+  Serial.print(buttonPressed);
+  Serial.println("");
+  led = JLed(27).Blink(300, 300).Forever();
+  led.Reset();
+  led.Update();
+  timer1.in(5000, changeLed);
+  Serial.println("---- onPressed end");
 }
 
-
-
-void loop() {
+void loop()
+{
+  timer1.tick();
   led.Update();
   button.read();
-  timer.tick();
-  yield();
+  yield();  
 }
